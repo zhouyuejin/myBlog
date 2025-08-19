@@ -38,6 +38,11 @@ jobs:
           ls -la nginx-config/
           cat nginx-config/blog.conf
 
+      - name: Test SSH Connection
+        run: |
+          mkdir -p ~/.ssh
+          echo 
+
       - name: Upload Nginx Config
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
