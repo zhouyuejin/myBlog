@@ -43,7 +43,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.ALIYUN_SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH connection test successful'
+          ls -la ~/.ssh/
+          cat ~/.ssh/deploy_key | head -5 # 显示密钥的前5行进行验证
+          echo "正在测试SSH连接（详细输出模式）..."
+          ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o PreferredAuthentications=publickey ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH连接测试成功'
+          if [ $? -ne 0 ]; then
+            echo "SSH连接失败。尝试密码认证作为备选方案..."
+            ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o PreferredAuthentications=password ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH连接测试成功'
+          fi
           ls -la ~/.ssh/
 
       - name: Upload Nginx Config
