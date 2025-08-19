@@ -41,15 +41,36 @@ jobs:
       - name: Test SSH Connection
         run: |
           mkdir -p ~/.ssh
+          # 验证密钥是否存在且非空
+          if [ -z "${{ secrets.ALIYUN_SERVER_SSH_KEY }}" ]; then
+            echo "错误: ALIYUN_SERVER_SSH_KEY密钥为空"
+            exit 1
+          fi
+          
+          # 写入并验证密钥文件
           echo "${{ secrets.ALIYUN_SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          
+          # 显示密钥文件信息（不暴露内容）
+          echo "密钥文件信息:" 
           ls -la ~/.ssh/
-          cat ~/.ssh/deploy_key | head -5 # 显示密钥的前5行进行验证
-          echo "正在测试SSH连接（详细输出模式）..."
-          ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o PreferredAuthentications=publickey ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH连接测试成功'
+          echo "密钥文件大小: $(wc -c < ~/.ssh/deploy_key) 字节"
+          
+          # 检查密钥格式是否有效
+          if ! ssh-keygen -l -f ~/.ssh/deploy_key; then
+            echo "错误: 私钥格式无效"
+            exit 1
+          fi
+          
+          # 测试SSH连接（最高 verbosity）
+          echo "正在测试SSH连接（最高详细度）..."
+          ssh -vvv -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o PreferredAuthentications=publickey ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH连接测试成功'
+          
+          # 如果公钥认证失败，尝试密码认证
           if [ $? -ne 0 ]; then
-            echo "SSH连接失败。尝试密码认证作为备选方案..."
-            ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o PreferredAuthentications=password ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH连接测试成功'
+            echo "公钥认证失败。尝试密码认证..."
+            # 注意：这仅在服务器启用密码认证时有效
+            ssh -vvv -o StrictHostKeyChecking=no -o PreferredAuthentications=password ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH连接测试成功'
           fi
           ls -la ~/.ssh/
 
