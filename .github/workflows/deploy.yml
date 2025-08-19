@@ -33,16 +33,21 @@ jobs:
         run: pnpm docs:build
         continue-on-error: false
 
-      # 以下步骤保持不变
+      - name: Verify Nginx Config Directory
+        run: |
+          ls -la nginx-config/
+          cat nginx-config/blog.conf
+
       - name: Upload Nginx Config
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO"
+          ARGS: "-rltgoDzvOv"
           SOURCE: "nginx-config/"
           REMOTE_HOST: ${{ secrets.ALIYUN_SERVER_HOST }}
           REMOTE_USER: ${{ secrets.ALIYUN_SERVER_USER }}
           TARGET: "/etc/nginx/sites-available/"
+          DEBUG: "true"
 
       - name: Apply Nginx Config
         uses: appleboy/ssh-action@master
