@@ -41,7 +41,10 @@ jobs:
       - name: Test SSH Connection
         run: |
           mkdir -p ~/.ssh
-          echo 
+          echo "${{ secrets.ALIYUN_SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.ALIYUN_SERVER_USER }}@${{ secrets.ALIYUN_SERVER_HOST }} 'echo SSH connection test successful'
+          ls -la ~/.ssh/
 
       - name: Upload Nginx Config
         uses: easingthemes/ssh-deploy@v2.1.5
