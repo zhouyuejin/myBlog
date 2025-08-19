@@ -1,1 +1,35 @@
+# 依赖目录
 node_modules
+
+# 构建输出
+docs/.vuepress/dist
+
+# 缓存和临时文件
+docs/.vuepress/.cache
+docs/.vuepress/.temp
+
+# 日志文件
+*.log
+
+# IDE配置
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 私人配置文件
+.env
+.env.local
+.env.*.local
+
+# 其他
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
