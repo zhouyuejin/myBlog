@@ -2,35 +2,72 @@ name: Deploy VuePress Blog to Aliyun
 
 on:
   push:
-    branches: [ main ] # 监听main分支的push事件
+    branches: [release] # 监听release分支的push事件
+  workflow_dispatch: # 允许手动触发
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 确保获取完整的提交历史
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
+          cache: "pnpm" # 缓存pnpm依赖
 
       - name: Install pnpm
         run: npm install -g pnpm
 
       - name: Install dependencies
         run: pnpm install
+        continue-on-error: false # 依赖安装失败时停止
 
       - name: Build
         run: pnpm docs:build
+        continue-on-error: false # 构建失败时停止
+
+      - name: Upload Nginx Config
+        uses: easingthemes/ssh-deploy@v2.1.5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SERVER_SSH_KEY }}
+          ARGS: '-rltgoDzvO'
+          SOURCE: 'nginx-config/'
+          REMOTE_HOST: ${{ secrets.ALIYUN_SERVER_HOST }}
+          REMOTE_USER: ${{ secrets.ALIYUN_SERVER_USER }}
+          TARGET: '/etc/nginx/sites-available/'
+
+      - name: Apply Nginx Config
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ALIYUN_SERVER_HOST }}
+          username: ${{ secrets.ALIYUN_SERVER_USER }}
+          key: ${{ secrets.ALIYUN_SERVER_SSH_KEY }}
+          script: |
+            ln -sf /etc/nginx/sites-available/blog.conf /etc/nginx/sites-enabled/
+            nginx -t
+            systemctl reload nginx
 
       - name: Deploy to Aliyun Server
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SERVER_SSH_KEY }}
-          ARGS: '-rltgoDzvO --delete'
-          SOURCE: 'docs/.vuepress/dist'
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "docs/.vuepress/dist"
           REMOTE_HOST: ${{ secrets.ALIYUN_SERVER_HOST }}
-          REMOTE_USER: 'root'
-          TARGET: '/usr/share/nginx/html/blog'
+          REMOTE_USER: ${{ secrets.ALIYUN_SERVER_USER }}
+          TARGET: "/usr/share/nginx/html/blog"
+
+      - name: Deploy success notification
+        if: success()
+        run: echo "部署成功！博客已更新到阿里云服务器"
+
+      - name: Deploy failure notification
+        if: failure()
+        run: |
+          echo "部署失败！请查看日志进行排查"
+          exit 1
