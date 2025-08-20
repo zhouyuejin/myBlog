@@ -30,8 +30,18 @@ export default defineUserConfig({
       "/": [
         {
           text: "前端面试总结",
+          link: "/interview", // 添加主链接
           // 可以添加子项
-          children: [{ text: "面试题1", link: "/interview/interview.md" }],
+          children: [
+            { text: "JavaScript", link: "/interview/JavaScript.md" }, // 移除末尾斜杠
+            { text: "CSS", link: "/interview/CSS.md" }, // 移除末尾斜杠
+            { text: "HTML", link: "/interview/HTML.md" }, // 移除末尾斜杠
+            { text: "Vue", link: "/interview/Vue.md" }, // 移除末尾斜杠
+            { text: "React", link: "/interview/React.md" }, // 移除末尾斜杠
+            { text: "NodeJs", link: "/interview/NodeJs.md" }, // 移除末尾斜杠
+            { text: "工程化", link: "/interview/Engineering.md" }, // 移除末尾斜杠
+            { text: "性能优化", link: "/interview/前端优化.md" }, // 移除末尾斜杠
+          ],
         },
       ],
       // 其他路径保持默认
