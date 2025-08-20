@@ -7,6 +7,8 @@ docs/.vuepress/dist
 # 缓存和临时文件
 docs/.vuepress/.cache
 docs/.vuepress/.temp
+docs/.vuepress/.dist
+
 
 # 日志文件
 *.log
