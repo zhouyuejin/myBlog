@@ -33,7 +33,10 @@ export default defineUserConfig({
           link: "/interview", // 添加主链接
           // 可以添加子项
           children: [
-            { text: "JavaScript", link: "/interview/JavaScript.md" }, // 移除末尾斜杠
+            {
+              text: "JavaScript",
+              link: "/interview/JavaScript.md",
+            }, // 移除末尾斜杠
             { text: "CSS", link: "/interview/CSS.md" }, // 移除末尾斜杠
             { text: "HTML", link: "/interview/HTML.md" }, // 移除末尾斜杠
             { text: "Vue", link: "/interview/Vue.md" }, // 移除末尾斜杠

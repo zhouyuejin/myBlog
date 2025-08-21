@@ -1,43 +1,25 @@
 # 工作流名称：将VuePress博客部署到阿里云服务器
 name: Deploy VuePress Blog to Aliyun
 
-# 触发条件：
+# 触发条件：提交到release分支或手动触发
 on:
-  pull_request:
+  push:
     branches: [release]
-    types: [closed, opened, synchronize]
   workflow_dispatch:
 
 jobs:
-  check-conflicts-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'pull_request' && 
-       github.event.pull_request.merged == true && 
-       github.event.pull_request.head.ref == 'dev') || 
-      github.event_name == 'workflow_dispatch'
     steps:
       - name: Debug information
         run: |
           echo "Event name: ${{ github.event_name }}"
-          echo "PR merged: ${{ github.event.pull_request.merged }}"
-          echo "PR head ref: ${{ github.event.pull_request.head.ref }}"
+          echo "Branch: ${{ github.ref }}"
 
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Check for conflicts between dev and release
-        run: |
-          git checkout release
-          git pull origin release
-          git merge --no-commit --no-ff origin/dev
-          if [ $? -ne 0 ]; then
-            echo "错误: 分支合并存在冲突，请解决冲突后再尝试"
-            exit 1
-          fi
-          echo "无冲突，可以继续部署"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -102,5 +84,5 @@ jobs:
       - name: Deploy failure notification
         if: failure()
         run: |
-          echo "部署失败！请查看日志进行排查"
+          echo "部署失败！请查看日志了解详情"
           exit 1
